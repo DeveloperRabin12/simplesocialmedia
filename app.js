@@ -12,6 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use (express.static(path.join(__dirname, 'public'))); 
 app.use(cookieParser());
 const bcrypt = require('bcrypt');
+const { log } = require('console');
 
 //this is home route
 app.get('/', (req, res) => {
@@ -40,7 +41,7 @@ app.post('/register', async (req, res) => {
                email: email,
                password: hash
             })
- //creating a token for the user which take email and user id as payload
+ //creating a token for the user which take email and user id as payload and secret is our secret key
             let token = jwt.sign({email:email, userid:user._id},"secret")
             res.cookie('token', token); //setting the token in the cookie
             res.redirect('/')
@@ -61,12 +62,13 @@ app.post('/login', async (req, res) => {
         //if user not found then send status 500 and send message
         res.status(500).send('username or password incorrect');
     }
+    //checkinig the encrypted password from db with the password from req.body
     bcrypt.compare(password, user.password, function(err, result) {
        if(result){
         //if user found then create a token and set it in the cookie and send status 200
         let token = jwt.sign({email:email, userid:user._id},"secret")
         res.cookie('token', token);
-        res.status(200).send('logged in');
+        res.status(200).redirect('/profile');
        }
        else res.redirect('/login')
     });
@@ -86,19 +88,35 @@ function isLoggedIn(req, res,next){
           }
 }
 
-app.get('/profile', isLoggedIn, (req, res) => {
-    res.send ('post goes here')
+//isLOggenIn function check if the user is already login or not
+app.get('/profile', isLoggedIn, async(req, res) => {
+ let user=await userModel.findOne({email:req.user.email}).populate('posts') //this req.user.email is from isLOggedIn function above
+
+ res.render('profile', {user:user})
 })
 
+app.post('/post',isLoggedIn, async(req, res) => {
+    let user = await userModel.findOne({email:req.user.email})
+   let post = await postModel.create({
+      user:user._id,
+      content:req.body.content
+    })
 
+    //posting poat in users post array
+    user.posts.push(post._id);
+    await user.save();
+    res.redirect('/profile')
+   });
+
+//logout route for clearing the token from cookie
 app.get('/logout', (req, res) => {
     res.cookie('token', '');
     res.redirect('/login')
 });
 
-
-
-
-
+app.get('/like/:id', isLoggedIn, async(req, res) => {
+    let post = await postModel.findOne({_id:req.params.id}).populate('posts');
+    res.render('profile',{post:post})
+});
 
 app.listen(3000, () => {});

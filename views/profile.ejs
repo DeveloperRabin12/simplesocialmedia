@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile 😊</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body>
+    <div class="w-full min-h-screen bg-zinc-900 p-10 text-white" >
+        <div class="w-full flex justify-end">
+            <a class="px-2 py-2 bg-red-500 rounded-lg " href="/logout">Log Out</a>
+        </div>
+        <h1>Hello <%= user.name %> 👋, Welcome</h1>
+        <h4>create your post here</h4>
+        <form action="/post" method="POST">
+            <textarea class="resize-none w-52 bg-transparent mt-4 border-2 border-zinc-600 rounded-lg px-2 py-3" name="content" id="" placeholder="Whats on your mind"></textarea>
+            <input type="submit" class=" mt-2  bg-blue-500 px-3 py-1 rounded-md block" value="Post">
+        </form>
+
+        <div class="posts mt-10 ">
+            <%user.posts.reverse().forEach(function(post){%>
+            <div class="w-72 bg-transparent p-2 rounded-lg border-2 mb-10 border-zinc-700">
+               <h2 class="text-lg"><%= user.name %></h2>
+               <p class="text-sm"><%= post.content %> </p>
+               <div class="flex justify-between">
+                   <a href="" class="text-blue-500">Like👍</a>
+                   <a href="">Comment</a>
+                   <a href="">Edit</a>
+                   <a class="bg-red-800 p-1 rounded-md text-sm" href="">delete</a>
+               </div>
+            </div>
+            <% })%>
+        </div>
+    </div>
+    
+</body>
+</html>
+          
+       
+            
+            
+            
+           

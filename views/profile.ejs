@@ -24,11 +24,14 @@
             <div class="w-72 bg-transparent p-2 rounded-lg border-2 mb-10 border-zinc-700">
                <h2 class="text-lg"><%= user.name %></h2>
                <p class="text-sm"><%= post.content %> </p>
+               <small class="inline-block mt-2"><%= post.likes.length %> Likes</small>
                <div class="flex justify-between">
-                   <a href="" class="text-blue-500">Like👍</a>
+                   <a href="/like/<%= post._id %>" class="text-blue-500">
+                    <%= post.likes.indexOf(user._id)===-1?'like':'unlike' %>
+                   </a>
                    <a href="">Comment</a>
-                   <a href="">Edit</a>
-                   <a class="bg-red-800 p-1 rounded-md text-sm" href="">delete</a>
+                   <a href="/edit/<%= post._id%>">Edit</a>
+                   <a class="bg-red-800 p-1 rounded-md text-sm" href="/delete/<%= post._id %>">delete</a>
                </div>
             </div>
             <% })%>

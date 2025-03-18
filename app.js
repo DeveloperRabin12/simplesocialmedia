@@ -78,8 +78,8 @@ app.post('/login', async (req, res) => {
 
 //middleware for checking if the user is logged in or not using the jwt token that we provide before while login
 function isLoggedIn(req, res,next){
-    if(req.cookies.token === ''){
-        res.send('you must log in');
+    if(!req.cookies.token){
+        return res.redirect('login');
     }
     else{
        let data = jwt.verify(req.cookies.token, 'secret');
@@ -90,8 +90,10 @@ function isLoggedIn(req, res,next){
 
 //isLOggenIn function check if the user is already login or not
 app.get('/profile', isLoggedIn, async(req, res) => {
+    
+    
  let user=await userModel.findOne({email:req.user.email}).populate('posts') //this req.user.email is from isLOggedIn function above
-
+ 
  res.render('profile', {user:user})
 })
 
@@ -115,8 +117,37 @@ app.get('/logout', (req, res) => {
 });
 
 app.get('/like/:id', isLoggedIn, async(req, res) => {
-    let post = await postModel.findOne({_id:req.params.id}).populate('posts');
-    res.render('profile',{post:post})
+    try {
+        let post = await postModel.findOne({ _id: req.params.id }).populate('user');
+        if (!post) {
+            return res.status(404).send('Post not found');
+        }
+        if (post.likes.indexOf(req.user.userid) === -1) {
+            post.likes.push(req.user.userid);
+        } else {
+            post.likes.splice(post.likes.indexOf(req.user.userid), 1);
+        }
+        await post.save();
+        res.redirect('/profile');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
+app.get('/edit/:id',async(req,res)=>{ 
+    let post = await postModel.findOne({_id:req.params.id})
+    res.render('edit',{post:post})
+});
+
+app.post('/edit/:id', async(req,res)=>{
+  await postModel.findOneAndUpdate({_id:req.params.id},{content:req.body.content})
+    res.redirect('/profile')
+})
+
+app.get('/delete/:id', async(req,res)=>{
+   await postModel.findOneAndDelete({_id:req.params.id})
+    res.redirect('/profile')
+});
 app.listen(3000, () => {});
+

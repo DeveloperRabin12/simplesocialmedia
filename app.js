@@ -5,6 +5,8 @@ const userModel = require('./models/user');
 const postModel = require('./models/post');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
+const upload = require('./utils/multerconfig');
+const mongoose = require('mongoose');
 
 app.set('view engine', 'ejs');
 app.use(express.json());
@@ -13,11 +15,21 @@ app.use (express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 const bcrypt = require('bcrypt');
 const { log } = require('console');
+const user = require('./models/user');
 
 //this is home route
-app.get('/', (req, res) => {
-    res.send('working')
+app.get('/profile/upload', (req, res) => {
+    res.render('profilepic')
 });
+
+app.post('/upload', isLoggedIn, upload.single('dp'), async(req, res) => {
+   let user = await userModel.findOne({email:req.user.email});
+   user.image = req.file.filename;
+   await user.save();
+   res.redirect('/profile')
+
+})
+
 
 //route for going to register page
 app.get('/register', async (req, res) => {
@@ -144,6 +156,8 @@ app.post('/edit/:id', async(req,res)=>{
   await postModel.findOneAndUpdate({_id:req.params.id},{content:req.body.content})
     res.redirect('/profile')
 })
+
+
 
 app.get('/delete/:id', async(req,res)=>{
    await postModel.findOneAndDelete({_id:req.params.id})
